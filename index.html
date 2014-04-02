@@ -67,7 +67,11 @@
 				var hashtag = window.location.hash;
 				if(hashtag === "")
 					hashtag = "topiconf";
-				var cb = new Codebird;
+				
+			requestTweets();
+
+			function requestTweets(){
+var cb = new Codebird;
 			cb.setConsumerKey('wBwd52ZJ8HMvQ2h7SLUkDg', 'TbUjK8k51tMwfh1cue5NKpGDfHKhvudjEtrKjUzjyQA');
 
 			cb.__call(
@@ -87,9 +91,8 @@
       			  );
    			 }
 			);
-			requestTweets();
 
-			function requestTweets(){
+
 				cb.__call(
 			  "search_tweets",
   			  "q=#"+hashtag,
@@ -109,11 +112,10 @@
 				var status = statuses[index];
 
 
-
-				$('#tweet').fadeOut(200,function(){
-						$('#tweetContent').html("\"" + status.text + "\"");
-						$('#tweetSubtext').html("@" + status.user.screen_name );
-					$('#tweet').fadeIn(200, function(){
+				$('#tweetContent').html("\"" + status.text + "\"");
+				$('#tweetSubtext').html("@" + status.user.screen_name );
+				$('#tweet').fadeIn(1000,function(){
+					$('#tweet').fadeOut(1000, function(){
 						if(index+1<statuses.length){
 							showTweet(statuses, index+1);
 						}
@@ -121,7 +123,7 @@
 							requestTweets();
 						}
 					});
-				});
+				}).delay(5000);
 			}
 
 		});
