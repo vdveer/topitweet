@@ -1,16 +1,79 @@
 <html>
 	<head>
 		<title>Tweets</title>
+		<link href='http://fonts.googleapis.com/css?family=Nunito:400,700' rel='stylesheet' type='text/css'>
+		<style>
+			body {background-color: #fde350; font-family: 'Nunito', sans-serif; margin:0; padding:0; }
+			h1 {font-size: 70px; margin:0;}
+			h2 {font-family: 'Nunito', sans-serif; font-size: 40px; margin:0;}
+			#tweet {
+			}
+			.outer {
+			    display: table;
+			    position: absolute;
+			    height: 100%;
+			    width: 100%;
+			    margin: 0;
+			    padding: 0;
+			}
+
+			.middle {
+			    display: table-cell;
+			    vertical-align: middle;
+			}
+
+			.inner {
+			    margin-left: auto;
+			    margin-right: auto; 
+			    width: 800px;
+			}
+			.right{
+				text-align: right;
+			}
+			.center{
+				text-align: center;;
+			}
+			.info
+			{
+				font-size:20px;
+				padding: 10px;
+			}
+			.emp
+			{
+				font-style: oblique;
+				font-weight: bold;
+			}
+		</style>
 		<script src="twitter.props.js" ></script>
 		<script src="jquery.js" ></script>
 		<script src="codebird.js" ></script>
 	</head>
 	<body>
 
+		<div class="info center">Meedoen? Gebruik <span class="emp">#topiconf</span> in je tweet!</div>
+		<div class="outer">
+			<div class="middle">
+				<div class="inner">
+					<div id="tweet">
+						<h1 id="tweetContent"></h1>
+						<h2 class="right" id="tweetSubtext"></h2>
+					</div>
+				</div>
+			</div>
+		</div>
 
 		<script language="javascript">
+
+			function showTweet(tweet, name, time){
+				$('#tweetContent').html("\"" + tweet + "\"");
+				$('#tweetSubtext').html("@" + name  + " - " + time);
+			}
+
 			$(document).ready(function(){
-							var cb = new Codebird;
+				var hashtag = window.location.hash;
+				if(hashtag === "")
+					hashtag = "topiconf";
+				var cb = new Codebird;
 			cb.setConsumerKey('wBwd52ZJ8HMvQ2h7SLUkDg', 'TbUjK8k51tMwfh1cue5NKpGDfHKhvudjEtrKjUzjyQA');
 
 			cb.__call(
@@ -33,20 +96,26 @@
 
 			cb.__call(
 			  "search_tweets",
-  			  "q=#topiconf",
+  			  "q=#"+hashtag,
    				 function (reply) {
 					console.log(reply);
 					var statusses = reply.statuses;
 					for(var i=0;i<statusses.length-1;i++){
 						var status = statusses[i];
-						$('#tweet').html(status.source);
+						//'#tweet').html(status.source);
 					}
     			},
  				   false // this parameter required
 				);
 			});
 
+		showTweet("bier", "aron", "12.04");
+
 		</script>
+
+	
+	
+
 		<p id="tweet">#topiconf</p>
 	</body>
 </html>
