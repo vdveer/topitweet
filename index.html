@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<title>Tweets</title>
+
+		<script src="jquery.js" ></script>
+		<script src="codebird.js" ></script>
+	</head>
+	<body>
+
+
+		<script language="javascript">
+			$(document).ready(function(){
+							var cb = new Codebird;
+			cb.setConsumerKey("YOURKEY", "YOURSECRET");
+
+			cb.__call(
+			    "oauth_requestToken",
+   				 {oauth_callback: "oob"},
+    			function (reply) {
+       				 // stores it
+    			    cb.setToken(reply.oauth_token, reply.oauth_token_secret);
+
+			        // gets the authorize screen URL
+        			cb.__call(
+         			   "oauth_authorize",
+           			 {},
+         			   function (auth_url) {
+        			        window.codebird_auth = window.open(auth_url);
+           			 }
+      			  );
+   			 }
+			);
+
+			cb.__call(
+			  "search_tweets",
+  			  "q=#topiconf",
+   				 function (reply) {
+					console.log(reply);
+    			},
+ 				   false // this parameter required
+				);
+			});
+
+		</script>
+		<p id="tweet">#topiconf</p>
+	</body>
+</html>
