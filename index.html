@@ -1,7 +1,7 @@
 <html>
 	<head>
 		<title>Tweets</title>
-
+		<script src="twitter.props.js" ></script>
 		<script src="jquery.js" ></script>
 		<script src="codebird.js" ></script>
 	</head>
@@ -11,7 +11,7 @@
 		<script language="javascript">
 			$(document).ready(function(){
 							var cb = new Codebird;
-			cb.setConsumerKey("YOURKEY", "YOURSECRET");
+			cb.setConsumerKey('wBwd52ZJ8HMvQ2h7SLUkDg', 'TbUjK8k51tMwfh1cue5NKpGDfHKhvudjEtrKjUzjyQA');
 
 			cb.__call(
 			    "oauth_requestToken",
@@ -36,6 +36,11 @@
   			  "q=#topiconf",
    				 function (reply) {
 					console.log(reply);
+					var statusses = reply.statuses;
+					for(var i=0;i<statusses.length-1;i++){
+						var status = statusses[i];
+						$('#tweet').html(status.source);
+					}
     			},
  				   false // this parameter required
 				);
