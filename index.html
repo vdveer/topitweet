@@ -42,6 +42,17 @@
 				font-style: oblique;
 				font-weight: bold;
 			}
+			#imagediv {
+				display: none;
+				float: left;
+			    background-size: cover;
+				background-position: 50% 50%;
+				height: 300px;
+				width: 300px;
+				border-radius: 50%;
+				margin-right: 50px;
+			}
+			
 		</style>
 		<script src="twitter.props.js" ></script>
 		<script src="jquery.js" ></script>
@@ -53,9 +64,15 @@
 		<div class="outer">
 			<div class="middle">
 				<div class="inner">
+
+						
+				<div id="imagediv"> </div>
 					<div id="tweet">
+
 						<h1 id="tweetContent"></h1>
 						<h2 class="right" id="tweetSubtext"></h2>
+						
+						</div>
 					</div>
 				</div>
 			</div>
@@ -66,15 +83,55 @@
 			$(document).ready(function(){
 				var hashtag = window.location.hash;
 				if(hashtag === "")
-					hashtag = "topiconf";
+					hashtag = "laurierdrop";
 				
 			requestTweets();
 
-			function requestTweets(){
-var cb = new Codebird;
-			cb.setConsumerKey('wBwd52ZJ8HMvQ2h7SLUkDg', 'TbUjK8k51tMwfh1cue5NKpGDfHKhvudjEtrKjUzjyQA');
+			var shortrun;
+			var longrun;
+			var cb;
+			var indexShort =0;
+			var indexLong =5;
+			var wissel = 0;
 
-			cb.__call(
+			function loadLongrun(){
+				indexLong = 5;
+				cb.__call(
+			    "oauth_requestToken",
+   				 {oauth_callback: "oob"},
+    			function (reply) {
+       				 // stores it
+    			    cb.setToken(reply.oauth_token, reply.oauth_token_secret);
+
+			        // gets the authorize screen URL
+        			cb.__call(
+         			   "oauth_authorize",
+           			 {},
+         			   function (auth_url) {
+        			        //window.codebird_auth = window.open(auth_url);
+           			 }
+      			  );
+   			 }
+			);
+				cb.__call(
+			  "search_tweets",
+  			  "count=50&q="+hashtag,
+   				 function (reply) {
+					var statuses = reply.statuses;
+
+					if(statuses.length>0){
+						longrun = statuses;
+						//showTweet(statuses, 0);
+					}
+
+    			},
+ 				   false // this parameter required
+				);
+
+			}
+			function loadShortrun(){
+				indexShort = 0;
+				cb.__call(
 			    "oauth_requestToken",
    				 {oauth_callback: "oob"},
     			function (reply) {
@@ -95,12 +152,13 @@ var cb = new Codebird;
 
 				cb.__call(
 			  "search_tweets",
-  			  "q=#"+hashtag,
+  			  "count=5&q="+hashtag,
    				 function (reply) {
-					console.log(reply);
 					var statuses = reply.statuses;
+
 					if(statuses.length>0){
-						showTweet(statuses, 0);
+						shortrun = statuses;
+						//showTweet(statuses, 0);
 					}
 
     			},
@@ -108,23 +166,85 @@ var cb = new Codebird;
 				);
 			}
 
-			function showTweet(statuses, index){
-				var status = statuses[index];
-				$('#tweet').fadeOut(500, function(){
+			function requestTweets(){
+			
+			cb = new Codebird;
+			cb.setConsumerKey('wBwd52ZJ8HMvQ2h7SLUkDg', 'TbUjK8k51tMwfh1cue5NKpGDfHKhvudjEtrKjUzjyQA');
 
-				$('#tweetContent').html("\"" + status.text + "\"");
-				$('#tweetSubtext').html("@" + status.user.screen_name );
-				$('#tweet').fadeIn(1000,function(){
-					if(index+1<statuses.length){
-								showTweet(statuses, index+1);
+			showTweet();
+
+			}
+
+			function showTweet(){
+			
+				
+				if(shortrun === undefined){
+					loadShortrun();
+				}
+				else if(longrun === undefined){
+					loadLongrun();
+				}
+				var status;
+				if(wissel == 0){
+					if(shortrun !== undefined && shortrun.length > indexShort){
+						status = shortrun[indexShort];
+						console.log("shortrun: " + status.id_str);
+						indexShort++;
+					}
+					else 
+						loadShortrun();
+				}
+				else{
+					if(longrun !== undefined && longrun.length > indexLong){
+						status = longrun[indexLong];
+
+						console.log("longrun: " + status.id_str);
+						window.alert(JSON.stringify(status));
+						indexLong++;
+					} else {
+						loadLongrun();
+					}
+				}
+				if(wissel === 0)
+					wissel = 1;
+				else
+					wissel = 0;
+				if(status !== undefined){
+					var foto = "";
+					if(status.entities !== undefined && status.entities.media !== undefined){
+						var media = status.entities.media;
+						for (var z = 0; z < media.length ; z++){
+							if(media[z].type !== undefined && media[z].type === "photo"){
+								foto = media[z].media_url;
+								break;
+							}
 						}
-						else{
-							requestTweets();
-						}
+					}
 					
-				}).delay(4500);
+					$('#tweet').fadeOut(500, function(){
+						var numbers = "[/]";
+					if(shortrun !== undefined && longrun !== undefined){
+						numbers = "["+indexShort+"/"+shortrun.length+" + "+indexLong+"/"+longrun.length+"]";
+					}
+					$('#tweetContent').html("\"" + status.text + "\"" + numbers);
+					$('#tweetSubtext').html("@" + status.user.screen_name );
+					if(foto !== ""){
+						$('#imagediv').css("background-image","url("+foto+")" );
+						$('#imagediv').show();
+					}
+					else{
+						$('#imagediv').hide();
+					}
+					$('#tweet').fadeIn(1000,function(){
+									setTimeout(function(){showTweet();},100);
+						
+					}).delay(500);
 
-				});
+					});
+				}
+				else{
+					setTimeout(function(){showTweet();},1000);
+				}
 			}
 
 		});
