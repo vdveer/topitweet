@@ -11,7 +11,7 @@
 			.outer {
 			    display: table;
 			    position: absolute;
-			    height: 100%;
+			    height: 90%;
 			    width: 100%;
 			    margin: 0;
 			    padding: 0;
@@ -52,6 +52,25 @@
 				border-radius: 50%;
 				margin-right: 50px;
 			}
+			.footer {
+			    position: absolute;
+			    bottom: 0;
+			    width: 100%;
+			    height: 50px;
+			    margin: 0 auto;
+			    padding: 10px;
+			    font-size: 40px;
+			     white-space: nowrap;
+			     overflow: hidden; 
+  				text-overflow: ellipsis;
+  				display: inline;
+  				 background-color: #999999;
+  				 opacity: 0.5;
+			}
+			.footer span{
+				width: 100%
+				display: block;
+			}
 			
 		</style>
 		<script src="twitter.props.js" ></script>
@@ -74,18 +93,40 @@
 						
 						</div>
 					</div>
-				</div>
+		
 			</div>
+
+			
+		</div>
+		<div class="footer" >
+			
 		</div>
 
 		<script language="javascript">
 
 			$(document).ready(function(){
-				var hashtag = window.location.hash;
+				requestTweets();
+			});
+
+			$(function()
+			{
+			    var ticker = function()
+			    {
+			        setTimeout(function(){
+			            $('.footer span:first').animate( {marginLeft: '-1200px'}, 800, function()
+			            {
+			                $(this).detach().appendTo('.footer').removeAttr('style');
+			            });
+			            ticker();
+			        }, 4000);
+			    };
+			    ticker();
+			});
+
+
+			var hashtag = window.location.hash;
 				if(hashtag === "")
-					hashtag = "laurierdrop";
-				
-			requestTweets();
+					hashtag = "topiconf";
 
 			var shortrun;
 			var longrun;
@@ -175,6 +216,40 @@
 
 			}
 
+			function updateProgramma(){
+				//var conference = "topiconf2015";
+				var conference = "someconf2015";
+				//var wanneer = "nu";
+				var wanneer = "10:33";
+				var endpoint = "https://app-test.topiconf.nl/api/conferenties/" + conference + "/programma/" + wanneer;
+				$.ajax({
+					url: endpoint,
+					dataType: "json",
+					error: function(a){
+						
+					},
+					success: function(data, status, jqXHR){
+						var presentatieString = "";
+						if(data !== undefined && data.presentaties != undefined){
+							for(var aantal = 0; aantal < data.presentaties.length; aantal++){
+								var presentatie = data.presentaties[aantal];
+								var one = "<span>"+presentatie.tijdsloten[0].begintijd + "-" + presentatie.tijdsloten[0].eindtijd + " : " + presentatie.titel;
+								if(presentatie.zaal)
+									one = one + " @" + presentatie.zaal;
+								if(data.presentaties.length > 1)
+									one = one + " - ";
+								one = one + "</span>";
+								presentatieString = presentatieString + one;
+							}
+							$('.footer').html(presentatieString);
+						}
+
+					}
+				});
+
+			}
+			updateProgramma();
+
 			function showTweet(){
 			
 				
@@ -222,11 +297,11 @@
 					}
 					
 					$('#tweet').fadeOut(500, function(){
-						var numbers = "[/]";
-					if(shortrun !== undefined && longrun !== undefined){
-						numbers = "["+indexShort+"/"+shortrun.length+" + "+indexLong+"/"+longrun.length+"]";
-					}
-					$('#tweetContent').html("\"" + status.text + "\"" + numbers);
+					//	var numbers = "[/]";
+					//if(shortrun !== undefined && longrun !== undefined){
+					//	numbers = "["+indexShort+"/"+shortrun.length+" + "+indexLong+"/"+longrun.length+"]";
+					//}
+					$('#tweetContent').html("\"" + status.text);// + "\"" + numbers);
 					$('#tweetSubtext').html("@" + status.user.screen_name );
 					if(foto !== ""){
 						$('#imagediv').css("background-image","url("+foto+")" );
@@ -247,7 +322,7 @@
 				}
 			}
 
-		});
+		
 
 		</script>
 	</body>
