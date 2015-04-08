@@ -1,0 +1,172 @@
+<html>
+<head>
+
+		<script src="jquery.js" ></script>
+	<script type="text/javascript">
+
+	var selfEasyrtcid = "";
+var ocs;
+var units = [];
+var confs = [];
+var myConf;
+var resultSet;
+//var urlEnv = "http://localhost:8081/rs/";
+//var token = "test2121";
+var token = "abcdefghijklmnopqrstuvwxyz";
+var urlEnv = "https://vote.topiconf.nl/rs/";
+if(window.location.hash === "#test")
+{
+	urlEnv = "https://vote-test.topiconf.nl/rs/";
+}
+ $(document).ready(conferenties);
+function filterUnitsOnResults(){
+    var meuk = "";
+    units.forEach(function(unit){
+
+    if(resultSet && resultSet[unit])
+        meuk = meuk + "<input type='submit' name='myunit' value='"+unit+"' onclick='resultsOf(\""+unit+"\");'>"+unit+"</input><br/>";
+    });
+    $('#unitHolder').html(meuk);
+}
+
+function sortUsingNestedText(parent, childSelector, keySelector) {
+                var items = parent.children(childSelector).sort(function(a, b) {
+                    var vA = parseInt($(keySelector, a).text());
+                    var vB = parseInt($(keySelector, b).text());
+                    return (vB < vA) ? -1 : (vB > vA) ? 1 : 0;
+                });
+                parent.append(items);
+            }
+
+
+function fillUnits(){
+
+                var endpoint = urlEnv + "bedrijven";
+                $.ajax({
+                    url: endpoint,
+                    dataType: "json",
+                    headers: {"X-Topiconf-Voter-AuthToken": token},
+                    error: function(a){
+                        
+                    },
+                    success: function(data, status, jqXHR){
+                        
+                        var presentatieString = "";
+                        if(data){
+                            units = data;
+                            console.log(units);
+                            resSet();
+                        }
+                    }
+                });              
+
+	
+
+}
+
+function resSet(){
+	var output = "";
+	units.forEach(function(unit){
+		if(resultSet && resultSet[unit]){
+			var unitStemmen = resultSet[unit];
+			unitStemmen.forEach(function(stem){
+				if($('#punten'+stem.to).length > 0){
+					$('#punten'+stem.to).html(parseInt($('#punten'+stem.to).html()) + stem.punten);
+				}
+				else{
+					output =  output + "<span class='unitje' id='unit"+stem.to+"'> "  + stem.to + ": <span class='points' id='punten"+ stem.to + "'>" + stem.punten + "</span>punten!</br></span>";
+					$('#unitHolder').html((output));
+
+				}
+			});
+
+		}
+	});
+
+    sortUsingNestedText($('#unitHolder'), "span .unitje",".points");
+    //render resultset
+                
+}
+
+function resultsOf(unit){
+    if(resultSet[unit]){
+        var stappen = resultSet[unit];
+        console.log(JSON.stringify(stappen));
+        var meuk = "";
+        var multistem = "";
+        stappen.forEach(function(stap){
+            if(stap.punten < 8)
+                multistem = multistem + "voteWS(\""+stap.to+"\",\"" + stap.punten + "\");"
+            else{
+                meuk = meuk + "<input type='submit' name='myStap' value='Verstuur' onclick='voteWS(\""+stap.to+"\",\"" + stap.punten + "\");'>"+stap.punten + " punten naar "+ stap.to + " (voor : " + stap.kandidaat + ")</input><br/>";
+            }
+        });
+        if(multistem !== "")
+            meuk = meuk + "<input type='submit' name='myStap' value='REST' onclick='javascript:" + multistem + "'/><br/>"
+        meuk = meuk + "<input type='submit' name='myStap' value='BACK' onclick='javascript:filterUnitsOnResults();'/><br/>";
+        $('#unitHolder').html(meuk);
+        $('#unitHolder input').attr('disabled', 'disabled');
+        $('#unitHolder input:first').removeAttr('disabled');
+    }
+}
+
+function conferenties(){
+                 var endpoint = urlEnv + "uitslag";
+            $.ajax({
+                    url: endpoint,
+                    dataType: "json",
+                    headers: {"X-Topiconf-Voter-AuthToken": token},
+                    error: function(a){
+                        
+                    },
+                    success: function(data, status, jqXHR){
+                        var presentatieString = "";
+                        if(data){
+                            confs = data;
+                            console.log(confs);
+                        }
+
+                        var meuk = "";
+                        confs.forEach(function(conf){
+                               meuk = meuk + "<input type='submit' name='myconf' value='"+conf.id+"' onclick='javascript: myconf="+conf.id+"; fillResultset();' >"+conf.name+"</input><br/>";
+                        });
+                        $('#unitHolder').html(meuk);
+
+                    }
+                });
+}
+
+function fillResultset(){
+            var endpoint = urlEnv + "uitslag/" + myconf + "/stappen";
+            $.ajax({
+                    url: endpoint,
+                    dataType: "json",
+                    headers: {"X-Topiconf-Voter-AuthToken": token},
+                    error: function(a){
+                        
+                    },
+                    success: function(data, status, jqXHR){
+                        var presentatieString = "";
+                        if(data && data.onthulPunten){
+                            resultSet = data.onthulPunten;
+                            console.log(JSON.stringify(resultSet));
+                            fillUnits();
+                        }
+
+                       
+                    }
+                });
+}
+	</script>
+</head>
+<body>
+
+	<div id="unitHolder">
+
+	</div>
+
+	<div id="uitslaglijst">
+		
+	</div>
+
+</body></html>
